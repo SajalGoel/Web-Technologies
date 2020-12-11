@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<HTML>
+<HEAD>
+<TITLE> Homewok 4 </TITLE>
+
+<style type="text/css">
+#text{
+
+  margin-top: 140px;
+  text-align: center;
+
+}
+#text_box{
+  text-align: center;
+  margin-top: 5px;
+  margin-left: 0px;
+
+}
+input:focus {
+   border:2px solid LightBlue;
+}
+#button{
+  margin-top: 17px;
+  text-align: center;
+
+
+}
+#submit_query{
+
+  background-color: Gainsboro;
+/*  border-color: black; */
+  border:0.5px solid gray;
+  border-radius: 4px;
+  padding-top: 1px;
+  width: 105px;
+  font-family: Arial, Helvetica, sans-serif;
+  /*border:0.5px solid;  */
+}
+</style>
+
+<script type="text/javascript">
+var carlist_parse;
+var textbox_input;
+function display_car(){
+  textbox_input = document.getElementById("carlist_filename").value;
+  if(textbox_input.length === 0 || !textbox_input.trim()){
+    alert('Enter File Name');
+    return;
+  }
+  var xmlhttp = new XMLHttpRequest();
+  xmlhttp.overrideMimeType("application/json");
+  xmlhttp.open('GET', textbox_input, false);
+  try{
+  xmlhttp.send();
+}
+catch(err){
+  alert('FILE NOT FOUND!');
+  return;
+}
+  var response;
+  if(xmlhttp.readyState==4 && xmlhttp.status=="200"){
+    response = xmlhttp.responseText;
+  }
+  else{
+    alert('File Not Found!!');
+  }
+  try{
+  carlist_parse = JSON.parse(response);
+}
+catch(err){
+  alert(err.message);
+  return;
+}
+  console.log(carlist_parse);
+
+  var row = [];
+  var header = [];
+  var main = carlist_parse['Mainline']['Table'];
+  if(!(main.hasOwnProperty("Header") && main['Header'].hasOwnProperty("Data") && main.hasOwnProperty("Row") && main['Row'].length > 0)){
+    alert('No required data present in file!!')
+    return;
+  }
+
+  var data_length = carlist_parse['Mainline']['Table']['Header']['Data'].length;
+  for(var i=0; i<data_length; i++){
+    header[i] = carlist_parse['Mainline']['Table']['Header']['Data'][i];
+  }
+  var x = make_table(carlist_parse, header);
+}
+  function make_table(carlist_parse, header){
+   var table_content = '<table style="border:1px solid black">';
+   var row_content = carlist_parse['Mainline']['Table']['Row'];
+   table_content += '<tr>';
+   var data_length = carlist_parse['Mainline']['Table']['Header']['Data'].length;
+
+   for(var i=0; i<data_length; i++){
+     table_content += '<th style="border:1px solid black;">';
+     var header_name = header[i];
+     table_content += header_name + '</th>';
+
+   }
+   table_content += '</tr>';
+
+   for(var i=0; i<row_content.length; i++){
+     table_content += '<tr>';
+     var row_fields = Object.keys(row_content[i]);
+     for(var j=0; j<row_fields.length; j++){
+       if(j==0){
+         table_content += '<td style="border:1px solid black; width: 10px">';
+       }
+       else if(j==1){
+         table_content += '<td style="border:1px solid black; width: 25px">';
+       }
+       else if(j==2){
+         table_content += '<td style="border:1px solid black; width: 670px; height: 170px">';
+       }
+       else if(j==3){
+         table_content += '<td style="border:1px solid black; width: 20px">';
+       }
+       else if(j==4){
+          table_content += '<td style="border:1px solid black; width: 90px">';
+       }
+       else if(j==5){
+         table_content += '<td style="border:1px solid black; width: 90px">';
+       }
+
+       var row_val = row_content[i][row_fields[j]];
+       var text = "";
+       if(row_val != ""){
+         if(row_fields[j] == 'HomePage'){
+           text = '<a href="'+row_val+'">'+ row_val + '</a>';
+         }
+         else if(row_fields[j] == 'Logo'){
+           text = '<img src="'+row_val+'" style="width:170px; height: 170px">';
+         }
+         else if(row_fields[j] == 'Hubs'){
+           var temp = "";
+           if(row_val['Hub'].length > 0){
+             temp = '<ul><li><b>'+row_val['Hub'][0]+'</b></li>';
+             for(var k=1; k<row_val['Hub'].length; k++){
+               temp += '<li>' +row_val['Hub'][k]+'</li></br>';
+             }
+             temp += '</ul>';
+           }
+           text = temp;
+         }
+         else{
+           text = row_val;
+         }
+       }
+      table_content += text + '</td>';
+     }
+     table_content += '</tr>';
+   }
+    table_content += '</table>';
+    var display = '<!DOCTYPE html><html><head><title></title></head><body><div id="display_table">'+table_content+'</div></body></html>';
+    var new_window = window.open('', 'HW4', 'width=1350, height=800,scrollbars=1,resizable=1');
+    new_window.document.write("<title>Largest Manufacturers by Production (2017)</title>");
+    new_window.document.open();
+    new_window.document.write(table_content);
+    new_window.document.close();
+  }
+
+</script>
+</HEAD>
+<BODY>
+
+<div id="text">
+  <h3>Enter URL for largest manufacturers by production (2017) List JSON File </h3>
+
+</div>
+
+<div id="text_box">
+   <input type="text" name="carlist" id="carlist_filename" size="24">
+</div>
+
+<div id="button">
+    <button type="submit" name="json_button" id="submit_query" onclick="display_car()"> Submit Query </button>
+</div>
+
+
+</BODY>
+</HTML>
